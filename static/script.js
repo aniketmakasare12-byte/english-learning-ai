@@ -29,7 +29,9 @@ function addMessage(role, text, speakButton = false) {
     const btn = document.createElement("button");
     btn.className = "speak-inline";
     btn.textContent = "🔊 Listen";
-    btn.addEventListener("click", () => speak(text));
+    btn.addEventListener("click", () =>
+  speakCorrectEnglishAndQuestion(text)
+);
     bubble.appendChild(btn);
   }
   article.append(avatar, bubble);
@@ -45,6 +47,33 @@ function speak(text) {
   utterance.rate = 0.88;
   window.speechSynthesis.speak(utterance);
 }
+
+function speakCorrectEnglishAndQuestion(aiReply) {
+  if (!voiceEnabled || !("speechSynthesis" in window)) return;
+
+  const correctMatch = aiReply.match(
+    /Correct English:\s*([\s\S]*?)(?=\n\s*(?:Marathi meaning|Tip|Practice Question|English Question|Question)\s*:|$)/i
+  );
+
+  const questionMatch = aiReply.match(
+    /(?:Practice Question|English Question|Question)\s*:\s*([\s\S]*?)(?=\n\s*(?:Correct English|Marathi meaning|Tip)\s*:|$)/i
+  );
+
+  const parts = [];
+
+  if (correctMatch && correctMatch[1].trim()) {
+    parts.push(correctMatch[1].trim());
+  }
+
+  if (questionMatch && questionMatch[1].trim()) {
+    parts.push(questionMatch[1].trim());
+  }
+
+  if (parts.length > 0) {
+    speak(parts.join(". "));
+  }
+}
+
 
 async function sendMessage(forcedText) {
   const text = (forcedText ?? input.value).trim();
@@ -65,7 +94,7 @@ async function sendMessage(forcedText) {
     history.push({ role: "user", text }, { role: "model", text: data.reply });
     history = history.slice(-12);
     setStatus("Great work! Keep practising. 🌟");
-    speak(data.reply);
+    speakCorrectEnglishAndQuestion(data.reply);
   } catch (err) {
     addMessage("assistant", `माफ कर, एक अडचण आली: ${err.message}`);
     setStatus("कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.");
