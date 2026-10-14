@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>English Buddy AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-icon">EN</div>
+      <div>
+        <h1>English Buddy AI</h1>
+        <p>तुझा Personal English Teacher</p>
+      </div>
+      <span class="level-pill">Beginner</span>
+    </header>
+
+    <section class="welcome">
+      <div class="welcome-emoji">👋</div>
+      <div>
+        <h2>Hello! Let's learn English.</h2>
+        <p>मराठीत प्रश्न विचार. मी तुला सोप्या इंग्रजीत शिकवेन.</p>
+      </div>
+    </section>
+
+    <section class="practice-bar" aria-label="Practice shortcuts">
+      <button class="chip" data-prompt="Teach me 5 everyday English words with Marathi meanings.">📘 Daily words</button>
+      <button class="chip" data-prompt="Let's practise a simple English conversation. Ask me one question at a time.">💬 Conversation</button>
+      <button class="chip" data-prompt="Teach me how to introduce myself in English with Marathi meaning.">🙋 Introduction</button>
+      <button class="chip" data-prompt="Give me a beginner English grammar mini lesson in Marathi.">✍️ Grammar</button>
+    </section>
+
+    <section id="chat" class="chat-area" aria-live="polite">
+      <article class="message assistant">
+        <div class="avatar">AI</div>
+        <div class="bubble">
+          <p>नमस्कार! 😊 मी तुझा English Teacher आहे.</p>
+          <p>चला, सुरुवात करूया. इंग्रजीत लिही: <strong>My name is Aniket.</strong></p>
+          <button class="speak-inline" data-speak="Hello! I am your English teacher. Let's start learning English.">🔊 Listen</button>
+        </div>
+      </article>
+    </section>
+
+    <div id="status" class="status" role="status">Ready to practise</div>
+    <section class="composer">
+      <textarea id="message" rows="2" placeholder="इथे लिहा... (उदा. मला इंग्रजी शिकायचे आहे)" aria-label="Your message"></textarea>
+      <div class="composer-actions">
+        <button id="micBtn" class="icon-btn" title="Speak in English or Marathi" aria-label="Start microphone">🎙️ <span>Speak</span></button>
+        <button id="sendBtn" class="send-btn">Send ↗</button>
+      </div>
+    </section>
+    <footer>
+      <span>🎧 Voice replies use your browser's speech feature.</span>
+      <button id="voiceToggle" class="text-btn" aria-pressed="true">🔊 Voice: On</button>
+    </footer>
+    <p class="privacy-note">तुझी Gemini API key फक्त server-side .env फाइलमध्ये ठेवा. ती कोणालाही शेअर करू नको.</p>
+  </main>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
