@@ -9,7 +9,9 @@ let voiceEnabled = true;
 let recognition = null;
 let isListening = false;
 
-function setStatus(text) { statusEl.textContent = text; }
+function setStatus(text) {
+  statusEl.textContent = text;
+}
 
 function addMessage(role, text, speakButton = false) {
   const article = document.createElement("article");
@@ -27,7 +29,9 @@ function addMessage(role, text, speakButton = false) {
     const btn = document.createElement("button");
     btn.className = "speak-inline";
     btn.textContent = "🔊 Listen";
-    btn.addEventListener("click", () => speak(text));
+    btn.addEventListener("click", () =>
+  speakCorrectEnglishAndQuestion(text)
+);
     bubble.appendChild(btn);
   }
   article.append(avatar, bubble);
@@ -44,6 +48,33 @@ function speak(text) {
   window.speechSynthesis.speak(utterance);
 }
 
+function speakCorrectEnglishAndQuestion(aiReply) {
+  if (!voiceEnabled || !("speechSynthesis" in window)) return;
+
+  const correctMatch = aiReply.match(
+    /Correct English:\s*([\s\S]*?)(?=\n\s*(?:Marathi meaning|Tip|Practice Question|English Question|Question)\s*:|$)/i
+  );
+
+  const questionMatch = aiReply.match(
+    /(?:Practice Question|English Question|Question)\s*:\s*([\s\S]*?)(?=\n\s*(?:Correct English|Marathi meaning|Tip)\s*:|$)/i
+  );
+
+  const parts = [];
+
+  if (correctMatch && correctMatch[1].trim()) {
+    parts.push(correctMatch[1].trim());
+  }
+
+  if (questionMatch && questionMatch[1].trim()) {
+    parts.push(questionMatch[1].trim());
+  }
+
+  if (parts.length > 0) {
+    speak(parts.join(". "));
+  }
+}
+
+
 async function sendMessage(forcedText) {
   const text = (forcedText ?? input.value).trim();
   if (!text || sendBtn.disabled) return;
@@ -55,7 +86,7 @@ async function sendMessage(forcedText) {
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text, history })
+      body: JSON.stringify({ message: text, history }),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Request failed");
@@ -63,7 +94,7 @@ async function sendMessage(forcedText) {
     history.push({ role: "user", text }, { role: "model", text: data.reply });
     history = history.slice(-12);
     setStatus("Great work! Keep practising. 🌟");
-    speak(data.reply);
+    speakCorrectEnglishAndQuestion(data.reply);
   } catch (err) {
     addMessage("assistant", `माफ कर, एक अडचण आली: ${err.message}`);
     setStatus("कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.");
@@ -74,16 +105,16 @@ async function sendMessage(forcedText) {
 }
 
 sendBtn.addEventListener("click", () => sendMessage());
-input.addEventListener("keydown", event => {
+input.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     sendMessage();
   }
 });
-document.querySelectorAll("[data-prompt]").forEach(btn => {
+document.querySelectorAll("[data-prompt]").forEach((btn) => {
   btn.addEventListener("click", () => sendMessage(btn.dataset.prompt));
 });
-document.querySelectorAll("[data-speak]").forEach(btn => {
+document.querySelectorAll("[data-speak]").forEach((btn) => {
   btn.addEventListener("click", () => speak(btn.dataset.speak));
 });
 
@@ -91,10 +122,12 @@ voiceToggle.addEventListener("click", () => {
   voiceEnabled = !voiceEnabled;
   voiceToggle.textContent = voiceEnabled ? "🔊 Voice: On" : "🔇 Voice: Off";
   voiceToggle.setAttribute("aria-pressed", String(voiceEnabled));
-  if (!voiceEnabled && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  if (!voiceEnabled && "speechSynthesis" in window)
+    window.speechSynthesis.cancel();
 });
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
 if (SpeechRecognition) {
   recognition = new SpeechRecognition();
   recognition.lang = "en-IN";
@@ -106,17 +139,19 @@ if (SpeechRecognition) {
     micBtn.innerHTML = "🔴 <span>Listening…</span>";
     setStatus("बोलायला सुरुवात कर. Microphone चालू आहे.");
   };
-  recognition.onresult = event => {
+  recognition.onresult = (event) => {
     let transcript = "";
     for (let i = event.resultIndex; i < event.results.length; i++) {
       transcript += event.results[i][0].transcript;
     }
     input.value = transcript;
   };
-  recognition.onerror = event => {
-    setStatus(event.error === "not-allowed"
-      ? "Microphone permission द्या. Browser address bar जवळील lock icon तपासा."
-      : `Voice recognition समस्या: ${event.error}. तुम्ही टाइप करू शकता.`);
+  recognition.onerror = (event) => {
+    setStatus(
+      event.error === "not-allowed"
+        ? "Microphone permission द्या. Browser address bar जवळील lock icon तपासा."
+        : `Voice recognition समस्या: ${event.error}. तुम्ही टाइप करू शकता.`,
+    );
   };
   recognition.onend = () => {
     isListening = false;
@@ -127,13 +162,19 @@ if (SpeechRecognition) {
   micBtn.addEventListener("click", () => {
     if (isListening) recognition.stop();
     else {
-      try { recognition.start(); }
-      catch (_) { setStatus("Microphone पुन्हा सुरू करण्यापूर्वी थोडा वेळ थांब."); }
+      try {
+        recognition.start();
+      } catch (_) {
+        setStatus("Microphone पुन्हा सुरू करण्यापूर्वी थोडा वेळ थांब.");
+      }
     }
   });
 } else {
   micBtn.disabled = true;
-  micBtn.title = "Speech recognition is not supported in this browser. Try Microsoft Edge or Google Chrome.";
+  micBtn.title =
+    "Speech recognition is not supported in this browser. Try Microsoft Edge or Google Chrome.";
   micBtn.innerHTML = "🎙️ <span>Mic not supported</span>";
-  setStatus("Microphone speech-to-text साठी Chrome किंवा Edge वापरा. Typing उपलब्ध आहे.");
+  setStatus(
+    "Microphone speech-to-text साठी Chrome किंवा Edge वापरा. Typing उपलब्ध आहे.",
+  );
 }
